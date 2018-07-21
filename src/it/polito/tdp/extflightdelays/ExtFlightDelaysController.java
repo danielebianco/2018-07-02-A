@@ -7,8 +7,10 @@
 package it.polito.tdp.extflightdelays;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.extflightdelays.model.Airport;
 import it.polito.tdp.extflightdelays.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -37,7 +39,7 @@ public class ExtFlightDelaysController {
     private Button btnAnalizza; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbBoxAeroportoPartenza"
-    private ComboBox<?> cmbBoxAeroportoPartenza; // Value injected by FXMLLoader
+    private ComboBox<Airport> cmbBoxAeroportoPartenza; // Value injected by FXMLLoader
 
     @FXML // fx:id="btnAeroportiConnessi"
     private Button btnAeroportiConnessi; // Value injected by FXMLLoader
@@ -50,12 +52,44 @@ public class ExtFlightDelaysController {
 
     @FXML
     void doAnalizzaAeroporti(ActionEvent event) {
-
+    	
+    	try {
+    		
+    		double miglia = Double.parseDouble(this.distanzaMinima.getText());
+    		
+    		this.model.creaGrafo(miglia);
+    		
+    		this.txtResult.clear();
+    		this.txtResult.appendText(String.format("Grafo creato: %d vertici e %d archi...\n\n", 
+    				model.getGrafo().vertexSet().size(), model.getGrafo().edgeSet().size()));
+    		
+    		this.cmbBoxAeroportoPartenza.getItems().clear();
+    		this.cmbBoxAeroportoPartenza.getItems().addAll(model.getGrafo().vertexSet());
+    		
+    	} catch (RuntimeException e) {
+    		this.txtResult.setText("ERRORE - input non valido!\n");
+    	}
+    	
     }
 
     @FXML
     void doCalcolaAeroportiConnessi(ActionEvent event) {
-
+    	
+    	Airport airport = this.cmbBoxAeroportoPartenza.getValue();
+    	
+    	if(airport == null) {
+    		this.txtResult.setText("ERRORE - nessun aeroporto selezionato!\n");
+    		return;
+    	}
+    	
+    	List<Airport> adiacenti = this.model.stampaRisultato(airport);
+    	
+    	this.txtResult.appendText("Lista adiacenti di " + airport + " :\n");
+    	
+    	for(Airport a : adiacenti) {
+    		this.txtResult.appendText("- " + a +"\n");
+    	}
+    	
     }
 
     @FXML
@@ -79,5 +113,10 @@ public class ExtFlightDelaysController {
 		this.model = model;
 		
 	}
+    
+    public Model getModel() {
+    	return this.model;
+    }
+    
 }
 
